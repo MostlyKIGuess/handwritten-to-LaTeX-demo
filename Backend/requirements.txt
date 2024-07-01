@@ -1,0 +1,6 @@
+flask
+kaggle
+gunicorn
+numpy
+matplotlib
+flask_cors
