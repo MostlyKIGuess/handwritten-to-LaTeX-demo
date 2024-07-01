@@ -1,7 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 
-const Canvas = ({ socket, roomId }) => {
-  const canvasRef = useRef(null);
+const Canvas = ({ canvasRef }) => {
   const ctxRef = useRef(null);
   const [drawing, setDrawing] = useState(false);
   const [color, setColor] = useState('#000000');
@@ -160,14 +159,6 @@ const Canvas = ({ socket, roomId }) => {
     }
     ctx.lineTo(correctedX, correctedY);
     ctx.stroke();
-    socket.emit('draw', {
-      roomId,
-      x: correctedX,
-      y: correctedY,
-      color,
-      lineSize,
-      isErasing,
-    });
   };
   
   const stopDrawingTouch = (e) => {
@@ -201,28 +192,6 @@ const Canvas = ({ socket, roomId }) => {
       canvas.removeEventListener('mouseleave', stopDrawing);
     };
   }, []);
-
-  useEffect(() => {
-    if (socket) {
-      const handleDraw = ({ x, y, color, lineSize, isErasing }) => {
-        const ctx = ctxRef.current;
-        if (isErasing) {
-          ctx.globalCompositeOperation = 'destination-out';
-        } else {
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.strokeStyle = color;
-          ctx.lineWidth = lineSize;
-        }
-        ctx.lineTo(x, y);
-        ctx.stroke();
-      };
-
-      socket.on('draw', handleDraw);
-      return () => {
-        socket.off('draw', handleDraw);
-      };
-    }
-  }, [socket]);
 
   const fillCanvas = () => {
     const ctx = ctxRef.current;
