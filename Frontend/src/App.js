@@ -61,6 +61,9 @@ function App() {
             <div ref={ltxcbRef} className='bg-gray-100 p-2 rounded font-mono text-sm overflow-auto'>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec
               Content goes here
+            <div className='bg-gray-100 p-2 rounded font-mono text-sm overflow-auto'>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec
+              Content goes here/
             </div>
             <button 
             onClick={handleCopyClick}
