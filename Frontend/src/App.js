@@ -26,7 +26,7 @@ function App() {
 
 
   const handleCopyClick = () => {
-    setContentToCopy(ltxcbRef.current.innerText);
+    setContentToCopy(ltxcbRef.current.innerText)
     navigator.clipboard.writeText(contentToCopy)
       .then(() => {
         console.log('Content copied successfully!');
@@ -61,9 +61,6 @@ function App() {
             <div ref={ltxcbRef} className='bg-gray-100 p-2 rounded font-mono text-sm overflow-auto'>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec
               Content goes here
-            <div className='bg-gray-100 p-2 rounded font-mono text-sm overflow-auto'>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec
-              Content goes here/
             </div>
             <button 
             onClick={handleCopyClick}
