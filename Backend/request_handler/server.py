@@ -4,6 +4,7 @@ import os
 import base64
 import re
 from flask_cors import CORS
+from utils.contour_filtering import contour_filter
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -31,13 +32,13 @@ def upload_canvas():
         img_str = re.search(r'base64,(.*)', data_url).group(1)
 
         img_data = base64.b64decode(img_str)
-
-        filename = f"{uuid.uuid4().hex}.png"
+        file_id = uuid.uuid4().hex
+        filename = f"{file_id}.png"
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 
         with open(file_path, 'wb') as f:
             f.write(img_data)
-
+        contour_filter(file_id)
         return jsonify({'message': 'Image uploaded successfully', 'filename': filename}), 201
     
     except Exception as e:
