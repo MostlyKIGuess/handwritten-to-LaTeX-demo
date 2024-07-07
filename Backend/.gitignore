@@ -1,3 +1,7 @@
 uploads/*.png
 __pycache__/
 extracted_characters/
+learner/datasets
+learner/models
+learner/*.py
+ML/Dataset/*.zip
