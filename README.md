@@ -2,10 +2,11 @@
  User can draw and brrrr
 
 
-## Config
+## Config Dataset
 
-- Download the dataset from [here](https://www.kaggle.com/datasets/xainano/handwrittenmathsymbols/data) .
-- Extract the data.rar and extract the dataset.zip inside Dataset folder.
-- The directories should be like Dataset/extracted_images/**
-
-
+```sh
+cd .\Backend\learner\datasets\
+kaggle datasets download xainano/handwrittenmathsymbols
+tar -xvzf .\handwrittenmathsymbols.zip
+tar -xvzf .\data.rar
+```
