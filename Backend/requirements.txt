@@ -4,3 +4,5 @@ gunicorn
 numpy
 matplotlib
 flask_cors
+torch
+torchvision
