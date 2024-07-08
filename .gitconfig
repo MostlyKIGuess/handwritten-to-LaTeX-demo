@@ -1,0 +1,2 @@
+[alias]
+    undo = reset --soft HEAD^
