@@ -3,5 +3,5 @@ __pycache__/
 extracted_characters/
 learner/datasets
 learner/models
-# learner/*.py
+learner/*.py
 ML/Dataset/*.zip

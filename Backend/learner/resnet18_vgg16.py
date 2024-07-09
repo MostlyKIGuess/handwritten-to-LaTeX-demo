@@ -13,8 +13,6 @@ from torchvision.models import resnet18, vgg16, ResNet18_Weights, VGG16_Weights
 
 
 
-
-
 class HandwrittenSymbolsClassifier:
     def __init__(self, root_dir, batch_size=64, lr=0.001, epochs=10, device=None, model_type='resnet'):
         self.root_dir = root_dir
