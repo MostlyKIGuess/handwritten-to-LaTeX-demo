@@ -34,7 +34,7 @@ image_paths = glob.glob('tests/testfornew/**/*', recursive=True)
 for image_path in image_paths:
     image = cv2.imread(image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    resized_image = cv2.resize(image, (600, 600), interpolation=cv2.INTER_AREA)
+    resized_image = cv2.resize(image, (45, 45), interpolation=cv2.INTER_AREA)
     if len(resized_image.shape) == 3:
         gray_image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
     else:
