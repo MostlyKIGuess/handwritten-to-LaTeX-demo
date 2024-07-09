@@ -1,6 +1,6 @@
 from learner.trainer import HandwrittenSymbolsClassifier
 SCORE = 0
-TOTAL = 2
+TOTAL = 1
 
 classifier = HandwrittenSymbolsClassifier(root_dir='./learner/datasets/extracted_images/', epochs=5)
 
@@ -17,7 +17,7 @@ except Exception as e:
         print(e)
 
 try:
-    result = classifier.predict('./tests/75bb990518714322ba46ba3743bb7b90.png')
+    result = classifier.predict('./tests/test_actual.jpg')
     print(f'Predicted class: {result}')
     SCORE += 1
 except Exception as e:
