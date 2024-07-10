@@ -18,6 +18,7 @@ cd ./Backend/learner/datasets
 kaggle datasets download xainano/handwrittenmathsymbols
 unzip ./handwrittenmathsymbols.zip
 rar x data.rar
+```
 
 - Very important make sure the extracted_images has 82 categories, and that will only happen after you extract data.rar .
 
