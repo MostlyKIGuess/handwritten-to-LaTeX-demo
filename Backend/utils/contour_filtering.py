@@ -3,8 +3,6 @@ import numpy as np
 import os
 import shutil
 
-output_folder = 'extracted_characters'
-
 def clear_folder(folder_path):
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path)
@@ -22,9 +20,11 @@ def contour_filter(image_id):
     
     contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
+    output_folder = os.path.join('extracted_characters', image_id)
     clear_folder(output_folder)
     
     for i, contour in enumerate(contours):
         x, y, w, h = cv2.boundingRect(contour)
         cropped_character = image[y:y+h, x:x+w]
-        cv2.imwrite(os.path.join(output_folder, f'character_{i}.png'), cropped_character)
+        resized_character = cv2.resize(cropped_character, (45, 45))
+        cv2.imwrite(os.path.join(output_folder, f'{i}.png'), resized_character)

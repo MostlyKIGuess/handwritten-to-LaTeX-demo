@@ -13,7 +13,7 @@ classifier = HandwrittenSymbolsClassifier(
     epochs=1,
     batch_size=32,  # for vgg use 32 otherwise 64
     model_type=f"{model_name}",
-    n=1000
+    n=1000 # for testing purposes only
 )
 
 try:
