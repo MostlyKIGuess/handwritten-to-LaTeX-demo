@@ -10,9 +10,10 @@ model_name = "vgg"  # or 'vgg'
 
 classifier = HandwrittenSymbolsClassifier(
     root_dir="./learner/datasets/extracted_images/",
-    epochs=10,
+    epochs=1,
     batch_size=32,  # for vgg use 32 otherwise 64
     model_type=f"{model_name}",
+    n=1000
 )
 
 try:
