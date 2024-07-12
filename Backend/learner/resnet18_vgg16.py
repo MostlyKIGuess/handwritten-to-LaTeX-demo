@@ -127,7 +127,7 @@ class HandwrittenSymbolsClassifier:
         print('Model saved successfully.')
 
     def load_model(self, model_path):
-        self.model.load_state_dict(torch.load(model_path))
+        self.model.load_state_dict(torch.load(model_path, map_location ='cpu'))
         self.model.to(self.device)
         self.model.eval()
         print('Model loaded successfully.')
