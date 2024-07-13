@@ -6,12 +6,12 @@ from PIL import Image
 
 from learner.resnet18_vgg16 import HandwrittenSymbolsClassifier
 
-model_name = "vgg"  # or 'vgg'
+model_name = "resnet34"  # or 'vgg16' biggest 'resnet50' 'resnet34' and  'resnet18' smallest
 
 classifier = HandwrittenSymbolsClassifier(
     root_dir="./learner/datasets/extracted_images/",
-    epochs=10,
-    batch_size=32,  # for vgg use 32 otherwise 64
+    epochs=5,
+    batch_size=64,  # for vgg16 and resnet50 use 32 otherwise 64
     model_type=f"{model_name}",
 )
 
@@ -29,14 +29,6 @@ except Exception as e:
 
 
 # testing
-
-transformtosize = transforms.Compose(
-    [
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-    ]
-)
-
 image_paths = glob.glob("tests/testfornew/**/*", recursive=True)
 
 for image_path in image_paths:

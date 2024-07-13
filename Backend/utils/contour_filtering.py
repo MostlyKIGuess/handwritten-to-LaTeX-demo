@@ -3,8 +3,6 @@ import numpy as np
 import os
 import shutil
 
-output_folder = 'extracted_characters'
-
 def clear_folder(folder_path):
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path)
@@ -15,16 +13,20 @@ def contour_filter(image_id):
     if image is None:
         print("Error loading image")
         return
-    
+
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    
-    _, binary = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY_INV)
-    
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
+    contours, _ = cv2.findContours(gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+  
+    output_folder = os.path.join('extracted_characters', image_id)
     clear_folder(output_folder)
+    
+    margin = 200  
     
     for i, contour in enumerate(contours):
         x, y, w, h = cv2.boundingRect(contour)
+        x = max(x - margin // 2, 0)
+        y = max(y - margin // 2, 0)
+        w = min(w + margin, image.shape[1] - x)
+        h = min(h + margin, image.shape[0] - y)
         cropped_character = image[y:y+h, x:x+w]
-        cv2.imwrite(os.path.join(output_folder, f'character_{i}.png'), cropped_character)
+        cv2.imwrite(os.path.join(output_folder, f'{i}.png'), cropped_character)
