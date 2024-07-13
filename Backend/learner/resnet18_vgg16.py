@@ -1,14 +1,13 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
-from torch.utils.data import DataLoader, Dataset, Subset
-from torchvision import transforms
+from torch.utils.data import DataLoader, Dataset
+from torchvision import transforms, models
 import os
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from PIL import Image
-from torchvision.models import resnet18, vgg16, ResNet18_Weights, VGG16_Weights
+
 
 class HandwrittenSymbolsClassifier:
     def __init__(self, root_dir, batch_size=64, lr=0.001, epochs=10, device=None, model_type='resnet', n=None):
@@ -18,9 +17,15 @@ class HandwrittenSymbolsClassifier:
         self.epochs = epochs
         self.device = device if device else torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.transform = transforms.Compose([
-            transforms.Resize((224, 224)),
+            transforms.Resize((224, 224)),  
+            transforms.RandomRotation(10),
             transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) 
+        ])
+        self.transformintest = transforms.Compose([
+            transforms.Resize((224, 224)),  
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) 
         ])
         self.dataset = self.HandwrittenSymbolsDataset(root_dir, transform=self.transform)
         self.train_loader, self.test_loader = self._prepare_data_loaders(n)
@@ -55,21 +60,26 @@ class HandwrittenSymbolsClassifier:
             return image, label
 
     class CNN(nn.Module):
-        def __init__(self, num_classes, model_type='resnet'):
+        def __init__(self, num_classes, model_type='resnet18'):
             super().__init__()
-            if model_type == 'resnet':
-                self.model = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
-            elif model_type == 'vgg':
-                self.model = vgg16(weights=VGG16_Weights.IMAGENET1K_V1)
-            else:
-                raise ValueError("Unsupported model type")
-
-            if model_type == 'resnet':
+            if model_type == 'resnet18':
+                self.model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
                 num_ftrs = self.model.fc.in_features
                 self.model.fc = nn.Linear(num_ftrs, num_classes)
-            elif model_type == 'vgg':
+            elif model_type == 'resnet50':
+                self.model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
+                num_ftrs = self.model.fc.in_features
+                self.model.fc = nn.Linear(num_ftrs, num_classes)
+            elif model_type == 'resnet34':
+                self.model = models.resnet34(weights=models.ResNet34_Weights.DEFAULT)
+                num_ftrs = self.model.fc.in_features
+                self.model.fc = nn.Linear(num_ftrs, num_classes)
+            elif model_type == 'vgg16':
+                self.model = models.vgg16(weights=models.VGG16_Weights.DEFAULT)
                 num_ftrs = self.model.classifier[6].in_features
                 self.model.classifier[6] = nn.Linear(num_ftrs, num_classes)
+            else:
+                raise ValueError("Unsupported model type")
 
         def forward(self, x):
             return self.model(x)
@@ -148,8 +158,8 @@ class HandwrittenSymbolsClassifier:
         plt.show()
 
     def predict(self, image_path):
-        image = Image.open(image_path).convert('RGB')
-        image = self.transform(image).unsqueeze(0).to(self.device)
+        image = Image.open(image_path).convert('RGB')  
+        image = self.transformintest(image).unsqueeze(0).to(self.device)
         self.model.eval()
         with torch.no_grad():
             outputs = self.model(image)

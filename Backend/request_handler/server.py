@@ -16,7 +16,7 @@ UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 IS_MODEL_TRAINING = False
 
-model_name = "vgg"  # or 'resnet'
+model_name = "resnet34"  # or 'resnet'
 
 classifier = HandwrittenSymbolsClassifier(
     root_dir="./learner/datasets/extracted_images/",
@@ -109,6 +109,7 @@ def schedule_request(filename, file_id):
         cv2.imwrite(image_path, bw_image)
         prediction = classifier.predict(image_path=image_path)
         prediction_text += prediction
+        print(image_path, prediction)
     return prediction_text
 
 @app.route('/postCanvas', methods=['POST'])
