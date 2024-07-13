@@ -9,6 +9,8 @@ function App() {
   const canvasRef = useRef(null);
   const ltxcbRef = useRef(null);
   const [LAPI_resp, setLAPI_Resp] = useState(null);
+  const [LAPIlv2_resp, setLAPIlv2_resp] = useState(null);
+
   const getLatex = async () => {
     const imgData = canvasRef.current.toDataURL('image/png');
     const resp = await fetch(`${constants.SERVER_BASE_URL}/${constants.EP_POST_CANVAS}`, {
@@ -21,6 +23,18 @@ function App() {
     const sresp = await resp.json();
     setLAPI_Resp(sresp);
     console.log(LAPI_resp);
+  }
+  
+  const getJobStatus = async (track_id) => {
+    const resp = await fetch(`${constants.SERVER_BASE_URL}/${constants.QUEUE_STATUS}/${track_id}`, {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    const sresp = await resp.json();
+    setLAPIlv2_resp(sresp);
+    console.log(LAPIlv2_resp);
   }
 
   const handleCopyClick = () => {
