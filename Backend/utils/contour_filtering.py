@@ -13,22 +13,20 @@ def contour_filter(image_id):
     if image is None:
         print("Error loading image")
         return
-    
+
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    binary = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-                                   cv2.THRESH_BINARY_INV, 11, 2)
-    
-    kernel = np.ones((3,3), np.uint8)  
-    binary = cv2.dilate(binary, kernel, iterations=3) # Dilate to connect characters
-    
-    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(binary, connectivity=8)
-    
+    contours, _ = cv2.findContours(gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+  
     output_folder = os.path.join('extracted_characters', image_id)
     clear_folder(output_folder)
     
-    for i in range(1, num_labels):
-        x, y, w, h, area = stats[i]
-        if area < 50:  # Ignore small contours
-            continue
+    margin = 200  
+    
+    for i, contour in enumerate(contours):
+        x, y, w, h = cv2.boundingRect(contour)
+        x = max(x - margin // 2, 0)
+        y = max(y - margin // 2, 0)
+        w = min(w + margin, image.shape[1] - x)
+        h = min(h + margin, image.shape[0] - y)
         cropped_character = image[y:y+h, x:x+w]
         cv2.imwrite(os.path.join(output_folder, f'{i}.png'), cropped_character)
