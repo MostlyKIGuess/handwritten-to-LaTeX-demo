@@ -5,12 +5,14 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms, models
 import os
 from tqdm import tqdm
-import matplotlib.pyplot as plt
+import cv2
+import glob
 from PIL import Image
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 class HandwrittenSymbolsClassifier:
-    def __init__(self, root_dir, batch_size=64, lr=0.001, epochs=10, device=None, model_type='resnet18',n=None):
+    def __init__(self, root_dir, batch_size=64, lr=0.001, epochs=10, device=None, model_type='resnet18', n=None):
         self.root_dir = root_dir
         self.batch_size = batch_size
         self.lr = lr
@@ -43,17 +45,30 @@ class HandwrittenSymbolsClassifier:
             self.classes = os.listdir(root_dir)
             self.images = []
             self.labels = []
+
+            def is_image_file(filename):
+                valid_extensions = [".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif"]
+                return any(filename.lower().endswith(ext) for ext in valid_extensions)
+
+            image_paths = glob.glob(os.path.join(root_dir, '**', '*'), recursive=True)
             for idx, label in enumerate(self.classes):
                 class_path = os.path.join(root_dir, label)
                 for image in os.listdir(class_path):
-                    self.images.append(os.path.join(class_path, image))
-                    self.labels.append(idx)
+                    image_path = os.path.join(class_path, image)
+                    if is_image_file(image_path):
+                        self.images.append(image_path)
+                        self.labels.append(idx)
         
         def __len__(self):
             return len(self.images)
         
         def __getitem__(self, idx):
-            image = Image.open(self.images[idx]).convert('RGB') 
+            image_path = self.images[idx]
+            image = cv2.imread(image_path)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            resized_image = cv2.resize(image, (45, 45), interpolation=cv2.INTER_AREA)
+            _, bw_image = cv2.threshold(resized_image, 220, 255, cv2.THRESH_BINARY)
+            image = Image.fromarray(bw_image).convert('RGB')  # Convert to PIL Image and RGB mode
             label = self.labels[idx]
             if self.transform:
                 image = self.transform(image)
@@ -151,8 +166,9 @@ class HandwrittenSymbolsClassifier:
         plt.title('Model Accuracy')
         plt.show()
 
-    def predict(self, image_path):
-        image = Image.open(image_path).convert('RGB')  
+    def predict(self, image):
+        if isinstance(image, str):
+            image = Image.open(image).convert('RGB')
         image = self.transformintest(image).unsqueeze(0).to(self.device)
         self.model.eval()
         with torch.no_grad():
