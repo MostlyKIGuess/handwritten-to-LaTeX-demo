@@ -9,6 +9,27 @@ function App() {
   const canvasRef = useRef(null);
   const ltxcbRef = useRef(null);
   const [LAPI_resp, setLAPI_Resp] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const checkPredictionStatus = async (fileId) => {
+    setLoading(true);
+    const intervalId = setInterval(async () => {
+      const response = await fetch(`${constants.SERVER_BASE_URL}/prediction_status/${fileId}`);
+      const data = await response.json();
+      if (data.status === 'completed') {
+        clearInterval(intervalId);
+        setLoading(false);
+        setLAPI_Resp(data.result);
+      } else if (data.status === -1) {
+        clearInterval(intervalId);
+        setLoading(false);
+        setErrorMessage('Prediction data not found for the file ID');
+      }
+    
+    }, 1000);
+  };
+  
   const getLatex = async () => {
     const imgData = canvasRef.current.toDataURL('image/png');
     const resp = await fetch(`${constants.SERVER_BASE_URL}/${constants.EP_POST_CANVAS}`, {
@@ -20,14 +41,18 @@ function App() {
     });
     const sresp = await resp.json();
     setLAPI_Resp(sresp);
-    console.log(LAPI_resp);
+    if (resp.ok) {
+      checkPredictionStatus(sresp.file_id);
+    } else {
+      console.error(sresp.error);
+    }
   }
 
   const handleCopyClick = () => {
     setContentToCopy(ltxcbRef.current.innerText);
     navigator.clipboard.writeText(contentToCopy)
       .then(() => {
-        console.log('Content copied successfully!');
+        alert('Content copied successfully!');
       })
       .catch(err => {
         console.error('Failed to copy: ', err);
@@ -53,25 +78,23 @@ function App() {
               <h1 className='text-2xl font-bold mb-2'>
                 ASCII Output
               </h1>
-              <div>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec
-                Content goes here
-              </div>
+              {
+                loading ? <div>Loading...</div> : errorMessage ? <div>{errorMessage}</div> : <div>{LAPI_resp&&LAPI_resp.plain_text}</div>
+              }
             </div>
             <div className='flex items-center justify-center'>
-            <button
-                      onClick={getLatex}
-                      className='  bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg '>
-                      Get LaTeX
-                    </button>
+            <button onClick={getLatex} className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg'>
+              Get LaTeX
+            </button>
             </div>
             <div className='flex-1 bg-white p-4 shadow-md rounded-lg border'>
               <h1 className='text-2xl font-bold mb-2'>
                 LaTeX Code
               </h1>
               <div ref={ltxcbRef} className='bg-gray-100 p-2 rounded font-mono text-sm overflow-auto'>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec
-                Content goes here
+                {
+                  loading ? <div>Loading...</div> : errorMessage ? <div>{errorMessage}</div> : <div>{LAPI_resp&&LAPI_resp.latex_text}</div>
+                }
               </div>
               <button
                 onClick={handleCopyClick}

@@ -5,13 +5,11 @@ const Canvas = ({ canvasRef }) => {
   const [drawing, setDrawing] = useState(false);
   const [color, setColor] = useState('#000000');
   const [fillColor, setFillColor] = useState('#FFFFFF');
-  const [lineSize, setLineSize] = useState(5);
-  const [isFilling, setIsFilling] = useState(false);
+  const [lineSize, setLineSize] = useState(2);
   const [isErasing, setIsErasing] = useState(false);
   const [history, setHistory] = useState([]);
   const [step, setStep] = useState(-1);
-  const [showLastFrame, setShowLastFrame] = useState(false);
-  const overlayCanvasRef = useRef(null);
+  
 
   function isMobile() {
     
@@ -42,15 +40,6 @@ const Canvas = ({ canvasRef }) => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.lineCap = 'round';
     ctxRef.current = ctx;
-
-    const overlayCanvas = overlayCanvasRef.current;
-    overlayCanvas.width = canvas.width;
-    overlayCanvas.height = canvas.height;
-    overlayCanvas.style.position = 'absolute';
-    overlayCanvas.style.left = canvas.offsetLeft + 'px';
-    overlayCanvas.style.top = canvas.offsetTop + 'px';
-    overlayCanvas.style.pointerEvents = 'none'; // canvas click-through
-    overlayCanvas.style.display = 'none'; // hiding the overlay 
   }, []);
 
   const captureState = () => {
@@ -108,29 +97,6 @@ const Canvas = ({ canvasRef }) => {
     setDrawing(false);
     ctxRef.current.beginPath();
   };
-
-  
-
-  
-
-  const toggleLastFrame = () => {
-    setShowLastFrame(!showLastFrame);
-    const overlayCanvas = overlayCanvasRef.current;
-    const overlayCtx = overlayCanvas.getContext('2d');
-    if (!showLastFrame && history.length > 0) {
-      overlayCanvas.style.display = 'block'; 
-      const lastState = new Image();
-      lastState.src = history[step-1];
-      lastState.onload = () => {
-        overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-        overlayCtx.drawImage(lastState, 0, 0, overlayCanvas.width, overlayCanvas.height);
-      };
-    } else {
-      overlayCanvas.style.display = 'none'; 
-      overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-    }
-  };
-
 
   const startDrawingTouch = (e) => {
     e.preventDefault(); 
@@ -214,10 +180,6 @@ const Canvas = ({ canvasRef }) => {
         
         style={{ display: 'block', margin: '0 auto', backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '5px' }}
       ></canvas>
-       <canvas
-      ref={overlayCanvasRef}
-      style={{ display: 'none' }} 
-    ></canvas>
       <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ width: '40px', height: '40px', border: 'none', cursor: 'pointer' }} />
         <input type="range" min="1" max="20" value={lineSize} onChange={(e) => setLineSize(e.target.value)} style={{ cursor: 'pointer' }} />
