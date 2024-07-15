@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision import transforms, models
 import os
 from tqdm import tqdm
@@ -28,7 +28,7 @@ class HandwrittenSymbolsClassifier:
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) 
         ])
         self.dataset = self.HandwrittenSymbolsDataset(root_dir, transform=self.transform)
-        self.train_loader, self.test_loader = self._prepare_data_loaders()
+        self.train_loader, self.test_loader = self._prepare_data_loaders(n)
         self.model = self.CNN(len(self.dataset.classes), model_type=model_type)
         self.model.to(self.device)
         self.criterion = nn.CrossEntropyLoss()
@@ -84,10 +84,16 @@ class HandwrittenSymbolsClassifier:
         def forward(self, x):
             return self.model(x)
 
-    def _prepare_data_loaders(self):
-        train_size = int(0.8 * len(self.dataset))
-        test_size = len(self.dataset) - train_size
-        train_dataset, test_dataset = torch.utils.data.random_split(self.dataset, [train_size, test_size])
+    def _prepare_data_loaders(self, n):
+        if n:
+            indices = torch.randperm(len(self.dataset))[:n]
+            dataset = Subset(self.dataset, indices)
+        else:
+            dataset = self.dataset
+
+        train_size = int(0.8 * len(dataset))
+        test_size = len(dataset) - train_size
+        train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
         train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
         test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
         return train_loader, test_loader
