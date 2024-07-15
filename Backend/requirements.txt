@@ -6,3 +6,5 @@ matplotlib
 flask_cors
 torch
 torchvision
+transformers
+accelerate
