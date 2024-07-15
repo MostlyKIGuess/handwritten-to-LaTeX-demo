@@ -10,9 +10,10 @@ model_name = "resnet34"  # or 'vgg16' biggest 'resnet50' 'resnet34' and  'resnet
 
 classifier = HandwrittenSymbolsClassifier(
     root_dir="./learner/datasets/extracted_images/",
-    epochs=5,
+    epochs=1,
     batch_size=64,  # for vgg16 and resnet50 use 32 otherwise 64
     model_type=f"{model_name}",
+    n=500 # change as per requirement
 )
 
 try:
