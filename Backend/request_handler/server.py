@@ -26,11 +26,20 @@ classifier = HandwrittenSymbolsClassifier(
     model_type=f"{model_name}",
 
 )
+ 
+
 def load_db():
-    with open('db/data.json', 'r') as f:
-        data = json.load(f)
-        return data
-        
+    print("Current working directory:", os.getcwd())
+    try:
+        with open('db/data.json', 'r') as f:
+            data = json.load(f)
+            # print("Data loaded:", data)
+            return data
+    except Exception as e:
+        print("Failed to load data:", e)
+
+    
+
 def load_or_train_model():
     global IS_MODEL_TRAINING
     with train_lock:
@@ -81,9 +90,9 @@ def run_prediction(file_id, filename):
             return
 
     try:
-        prediction_text, prediction_latex  = schedule_request(filename, file_id)
+        prediction_text,prediction_latex = schedule_request(filename, file_id)
         with lock:
-            prediction_data[file_id] = [prediction_text, prediction_latex]
+            prediction_data[file_id] = [prediction_text,prediction_latex]
             incomplete_predictions.remove(file_id)
     except Exception as e:
         with lock:
@@ -109,9 +118,12 @@ def schedule_request(filename, file_id):
 
         cv2.imwrite(image_path, bw_image)
         prediction = classifier.predict(image_path=image_path)
-        prediction_text += f' {prediction}'
-        prediction_latex += f'${db[prediction]}$'
-    return prediction_text, prediction_latex
+        prediction_text += prediction
+        # prediction_latex += {db[prediction]}
+        prediction_latex+= db.get(prediction, "")
+        print("Prediction: ", prediction_text)
+        print("Prediction Latex: ", prediction_latex)
+    return prediction_text,prediction_latex
 
 @app.route('/postCanvas', methods=['POST'])
 def upload_canvas():
@@ -147,10 +159,6 @@ def get_prediction_status(file_id):
             return jsonify({'file_id': file_id, 'status': 'incomplete', 'message': 'Prediction is still in progress'}), 200
         else:
             return jsonify({'status': -1, 'error': 'Prediction data not found for the file ID'}), 404
-
-@app.route('/get_classes', methods=['GET'])
-def get_classlist():
-    return jsonify({'data': classifier.get_classlist()})
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)

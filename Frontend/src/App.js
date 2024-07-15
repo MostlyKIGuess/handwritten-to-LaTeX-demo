@@ -20,7 +20,10 @@ function App() {
       if (data.status === 'completed') {
         clearInterval(intervalId);
         setLoading(false);
+        // console.log(data.result);
         setLAPI_Resp(data.result);
+        setContentToCopy(data.result.latex_text);
+
       } else if (data.status === -1) {
         clearInterval(intervalId);
         setLoading(false);
@@ -50,7 +53,7 @@ function App() {
 
   const handleCopyClick = () => {
     setContentToCopy(ltxcbRef.current.innerText);
-    navigator.clipboard.writeText(contentToCopy)
+    navigator.clipboard.writeText(`$${contentToCopy}$`)
       .then(() => {
         alert('Content copied successfully!');
       })
