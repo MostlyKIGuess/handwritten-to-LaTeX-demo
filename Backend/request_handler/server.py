@@ -12,6 +12,9 @@ from PIL import Image
 import glob
 import cv2
 import json
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
+
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -163,3 +166,50 @@ def get_prediction_status(file_id):
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 load_or_train_model()
+
+llm_name = "deepseek-ai/deepseek-math-7b-base"
+llm_directory = "./models/llm"
+tokenizer = AutoTokenizer.from_pretrained(llm_name)
+llm = AutoModelForCausalLM.from_pretrained(llm_name, torch_dtype=torch.bfloat16, device_map="auto")
+llm.generation_config = GenerationConfig.from_pretrained(model_name)
+llm.generation_config.pad_token_id = llm.generation_config.eos_token_id
+
+
+def download_and_configure_llm():
+    if not os.path.exists(llm_directory):
+        os.makedirs(llm_directory)
+    
+    tokenizer_path = os.path.join(llm_directory, "tokenizer")
+    model_path = os.path.join(llm_directory, "model")
+    
+    if not os.path.exists(tokenizer_path) or not os.path.exists(model_path):
+        print("Downloading and configuring LLM...")
+        tokenizer = AutoTokenizer.from_pretrained(llm_name)
+        llm = AutoModelForCausalLM.from_pretrained(llm_name, torch_dtype=torch.bfloat16, device_map="auto")
+        llm.generation_config = GenerationConfig.from_pretrained(llm_name)
+        llm.generation_config.pad_token_id = llm.generation_config.eos_token_id
+        
+        tokenizer.save_pretrained(tokenizer_path)
+        llm.save_pretrained(model_path)
+        print("LLM downloaded and configured successfully.")
+    else:
+        print("LLM already downloaded and configured.")
+
+
+@app.route('/generate', methods=['POST'])
+def generate_text():
+    data = request.json
+    text = data.get("text", "")
+    inputs = tokenizer(text, return_tensors="pt")
+    outputs = llm.generate(**inputs.to(llm.device), max_new_tokens=100)
+    result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return jsonify({"result": result})
+
+
+@app.route('/download_llm', methods=['GET'])
+def download_llm():
+    try:
+        threading.Thread(target=download_and_configure_llm).start()
+        return jsonify({'status': 'success', 'message': 'LLM download and configuration initiated'}), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
