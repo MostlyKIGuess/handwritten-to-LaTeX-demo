@@ -5,12 +5,43 @@
   "main": "main.js",
   "homepage": "./",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder"
   },
   "license": "MIT",
   "devDependencies": {
     "electron": "^31.2.0",
     "electron-builder": "^24.9.1",
-    "electron-serve": "^1.0.0"
+    "electron-serve": "^1.0.0",
+    "rimraf": "^6.0.1"
+  },
+  "build": {
+    "productName": "handwritten-to-latex-demo",
+    "appId": "org.apps.handwritten-to-latex-demo",
+    "asar": true,
+    "asarUnpack": "**\\*.{node,dll}",
+    "files": [
+      "dist",
+      "node_modules",
+      "package.json",
+      "Backend",
+      "!Backend/learner/models/test_*.torch",
+      "Frontend",
+      "*.js"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Development"
+    },
+    "extraResources": [
+      "./assets/**"
+    ]
   }
 }
