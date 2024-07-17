@@ -1,0 +1,16 @@
+{
+  "name": "handwritten-to-latex-demo",
+  "version": "0.1.0",
+  "description": "User can draw and brrrr",
+  "main": "main.js",
+  "homepage": "./",
+  "scripts": {
+    "start": "electron ."
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^31.2.0",
+    "electron-builder": "^24.9.1",
+    "electron-serve": "^1.0.0"
+  }
+}
