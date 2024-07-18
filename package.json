@@ -2,12 +2,13 @@
   "name": "handwritten-to-latex-demo",
   "version": "0.1.0",
   "description": "User can draw and get LaTeX",
-  "author":"Anonymous",
+  "author": "Anonymous",
   "main": "main.js",
   "homepage": "./",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "build-all": "electron-builder -wl"
   },
   "license": "MIT",
   "devDependencies": {
@@ -22,7 +23,6 @@
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
-      "dist",
       "node_modules",
       "package.json",
       "Backend",
@@ -40,6 +40,31 @@
         "AppImage"
       ],
       "category": "Development"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.developer-tools",
+      "hardenedRuntime": true,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist",
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     },
     "extraResources": [
       "./assets/**"
