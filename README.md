@@ -53,8 +53,8 @@ npm install
 Before running the electron app, you need to build the frontend react app. To do that, follow these:
 
 ```sh
-cd frontend
-npm build
+cd Frontend
+npm run build
 ```
 
 Now electron is ready to run:

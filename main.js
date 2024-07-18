@@ -18,7 +18,7 @@ function createWindow() {
     });
     mainWindow.setMenuBarVisibility(false)
     mainWindow.maximize()
-    mainWindow.loadFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
+    mainWindow.loadFile(path.join(__dirname, 'Frontend', 'build', 'index.html'));
     mainWindow.on('closed', function () {
         mainWindow = null
     });
@@ -28,7 +28,7 @@ function createWindow() {
 }
 
 app.on('ready', () => {
-    pythonProcess = exec('cd backend && python app.py', (err, stdout, stderr) => {
+    pythonProcess = exec('cd Backend && python app.py', (err, stdout, stderr) => {
         if (err) {
             console.error(`Error starting Python server: ${err}`);
             return;
