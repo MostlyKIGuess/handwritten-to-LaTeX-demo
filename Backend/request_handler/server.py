@@ -167,15 +167,18 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 load_or_train_model()
 
-llm_name = "deepseek-ai/deepseek-math-7b-base"
-llm_directory = "./models/llm"
-tokenizer = AutoTokenizer.from_pretrained(llm_name)
-llm = AutoModelForCausalLM.from_pretrained(llm_name, torch_dtype=torch.bfloat16, device_map="auto")
-llm.generation_config = GenerationConfig.from_pretrained(model_name)
-llm.generation_config.pad_token_id = llm.generation_config.eos_token_id
+tokenizer = None
+llm = None
 
 
 def download_and_configure_llm():
+
+    llm_name = "deepseek-ai/deepseek-math-7b-base"
+    llm_directory = "./models/llm"
+    tokenizer = AutoTokenizer.from_pretrained(llm_name)
+    llm = AutoModelForCausalLM.from_pretrained(llm_name, torch_dtype=torch.bfloat16, device_map="auto")
+    llm.generation_config = GenerationConfig.from_pretrained(model_name)
+    llm.generation_config.pad_token_id = llm.generation_config.eos_token_id
     if not os.path.exists(llm_directory):
         os.makedirs(llm_directory)
     

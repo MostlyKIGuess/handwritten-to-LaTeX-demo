@@ -1,7 +1,8 @@
 {
   "name": "handwritten-to-latex-demo",
   "version": "0.1.0",
-  "description": "User can draw and brrrr",
+  "description": "User can draw and get LaTeX",
+  "author":"Anonymous",
   "main": "main.js",
   "homepage": "./",
   "scripts": {
