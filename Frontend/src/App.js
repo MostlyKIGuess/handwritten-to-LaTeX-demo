@@ -1,6 +1,6 @@
 import './App.css';
 import Canvas from './components/Canvas';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Constants from './constants/constants';
 
 function App() {
@@ -13,9 +13,21 @@ function App() {
   const [errorMessage, setErrorMessage] = useState('');
   const [modelDownloaded, setModelDownloaded] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [modelDeatils, setModelDetails] = useState(null);
 
-  
-
+  const fetchModelDeatils = async () => {
+    const resp = await fetch(`${constants.SERVER_BASE_URL}/model_details`)
+    const data = await resp.json();
+    if (data.error === undefined) {
+      setModelDetails(data);
+    }
+    else{
+      alert(data.error)
+    }
+  }
+  useEffect(()=>{
+    fetchModelDeatils();
+  }, [])
   const checkPredictionStatus = async (fileId) => {
     setLoading(true);
     const intervalId = setInterval(async () => {
@@ -24,7 +36,6 @@ function App() {
       if (data.status === 'completed') {
         clearInterval(intervalId);
         setLoading(false);
-        // console.log(data.result);
         setLAPI_Resp(data.result);
         setContentToCopy(data.result.latex_text);
 
@@ -68,8 +79,6 @@ function App() {
 
   const downloadModel = async () => {
     try {
-      // Example: Replace with actual API call to download the model
-      // This is a mock of the download process
       setDownloadProgress(0);
       const interval = setInterval(() => {
         setDownloadProgress((oldProgress) => {
@@ -89,19 +98,16 @@ function App() {
 
   
   return (
-    <div className="App bg-gray-100 m-2 p-4 sm:p-8">
-      <div className='status-boxes flex justify-between mb-4'>
-        <div className='status-box bg-green-200 p-2 rounded'>Model Name/Version: Resnet34</div>
-        <div className='status-box bg-blue-200 p-2 rounded'>Accuracy: 98.7%</div>
-        <div className='status-box bg-yellow-200 p-2 rounded'>Loss Rate: 1.3%</div>
-        <div className='status-box bg-red-200 p-2 rounded'>Last Updated: 2023-01-01</div>
-      
-     
-      </div>
-      <h1 className='text-4xl mb-4 font-bold text-center md:text-left pl-8'>Canvas Drawing</h1>
+    <div className="App bg-gray-100 p-4 sm:p-8">
+      {modelDeatils && <div className='status-boxes flex justify-between mb-4'>
+        <div className='status-box bg-green-200 p-2 rounded'>Model: {modelDeatils.name.replace(/^./, str => str.toUpperCase())}</div>
+        <div className='status-box bg-blue-200 p-2 rounded'>Accuracy: {modelDeatils.accurcay}%</div>
+        <div className='status-box bg-yellow-200 p-2 rounded'>Loss Rate: {modelDeatils.loss.toFixed(2)}</div>
+        <div className='status-box bg-red-200 p-2 rounded'>Last Updated: {modelDeatils.updated}</div>
+      </div>}
       <div className='main-content flex flex-col items-center gap-4'>
         <div className='flex flex-col sm:flex-row gap-4 w-full'>
-          <div className='w-full sm:w-3/5 shadow-lg bg-gray-200 rounded-lg p-4'>
+          <div className='w-full sm:w-3/5 shadow-lg bg-gray-200 rounded-lg'>
             <Canvas canvasRef={canvasRef} />
           </div>
           <div className='w-full sm:w-2/5 flex flex-col gap-4'>
@@ -132,7 +138,7 @@ function App() {
       )} */}
             <div className='flex-1 bg-white p-4 shadow-md rounded-lg border'>
               <h1 className='text-2xl font-bold mb-2'>
-                ASCII Output
+              Output
               </h1>
               {
                 loading ? <div>Loading...</div> : errorMessage ? <div>{errorMessage}</div> : <div>{LAPI_resp&&LAPI_resp.plain_text}</div>
