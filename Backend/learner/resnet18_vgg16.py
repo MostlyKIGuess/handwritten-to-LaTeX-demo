@@ -1,16 +1,17 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision import transforms, models
 import os
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from PIL import Image
-
+import json
+from time import gmtime, strftime
 
 class HandwrittenSymbolsClassifier:
-    def __init__(self, root_dir, batch_size=64, lr=0.001, epochs=10, device=None, model_type='resnet', n=None):
+    def __init__(self, root_dir, batch_size=64, lr=0.001, epochs=10, device=None, model_type='resnet18',n=None):
         self.root_dir = root_dir
         self.batch_size = batch_size
         self.lr = lr
@@ -35,6 +36,7 @@ class HandwrittenSymbolsClassifier:
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
         self.epoch_losses = []
         self.epoch_accuracies = []
+        self.model_type = model_type
 
     class HandwrittenSymbolsDataset(Dataset):
         def __init__(self, root_dir, transform=None):
@@ -48,12 +50,12 @@ class HandwrittenSymbolsClassifier:
                 for image in os.listdir(class_path):
                     self.images.append(os.path.join(class_path, image))
                     self.labels.append(idx)
-
+        
         def __len__(self):
             return len(self.images)
-
+        
         def __getitem__(self, idx):
-            image = Image.open(self.images[idx]).convert('RGB')
+            image = Image.open(self.images[idx]).convert('RGB') 
             label = self.labels[idx]
             if self.transform:
                 image = self.transform(image)
@@ -134,10 +136,17 @@ class HandwrittenSymbolsClassifier:
         if not os.path.exists(folder):
             os.makedirs(folder)
         torch.save(self.model.state_dict(), os.path.join(folder, model_name))
+        with open(f'{os.path.join(folder, model_name)}.metadata.json', 'w') as f:
+            json.dump({
+                "name": self.model_type,
+                "loss": self.epoch_losses[0],
+                "accurcay": self.epoch_accuracies[0],
+                "updated": strftime("%d-%b-%Y", gmtime())
+            }, f)
         print('Model saved successfully.')
 
     def load_model(self, model_path):
-        self.model.load_state_dict(torch.load(model_path, map_location ='cpu'))
+        self.model.load_state_dict(torch.load(model_path, map_location=self.device))
         self.model.to(self.device)
         self.model.eval()
         print('Model loaded successfully.')
@@ -165,6 +174,6 @@ class HandwrittenSymbolsClassifier:
             outputs = self.model(image)
             _, predicted = torch.max(outputs.data, 1)
         return self.dataset.classes[predicted.item()]
-
+    
     def get_classlist(self):
         return self.dataset.classes

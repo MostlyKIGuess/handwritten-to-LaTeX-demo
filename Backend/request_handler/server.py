@@ -11,6 +11,10 @@ import torchvision.transforms as transforms
 from PIL import Image
 import glob
 import cv2
+import json
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
+
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -20,11 +24,24 @@ model_name = "resnet34"  # or 'resnet'
 
 classifier = HandwrittenSymbolsClassifier(
     root_dir="./learner/datasets/extracted_images/",
-    epochs=10,
+    epochs=5,
     batch_size=32,  # for vgg use 32 otherwise 64
     model_type=f"{model_name}",
-    n=None
+
 )
+ 
+
+def load_db():
+    print("Current working directory:", os.getcwd())
+    try:
+        with open('db/data.json', 'r') as f:
+            data = json.load(f)
+            # print("Data loaded:", data)
+            return data
+    except Exception as e:
+        print("Failed to load data:", e)
+
+    
 
 def load_or_train_model():
     global IS_MODEL_TRAINING
@@ -76,9 +93,9 @@ def run_prediction(file_id, filename):
             return
 
     try:
-        prediction_text = schedule_request(filename, file_id)
+        prediction_text,prediction_latex = schedule_request(filename, file_id)
         with lock:
-            prediction_data[file_id] = prediction_text
+            prediction_data[file_id] = [prediction_text,prediction_latex]
             incomplete_predictions.remove(file_id)
     except Exception as e:
         with lock:
@@ -87,13 +104,9 @@ def run_prediction(file_id, filename):
 
 def schedule_request(filename, file_id):
     prediction_text = ""
+    prediction_latex = ""
+    db = load_db()
     contour_filter(file_id)
-    transformtosize = transforms.Compose(
-        [
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-        ]
-    )
     image_paths = glob.glob(f"extracted_characters/{file_id}/**/*", recursive=True)
     for image_path in image_paths:
         image = cv2.imread(image_path)
@@ -109,8 +122,11 @@ def schedule_request(filename, file_id):
         cv2.imwrite(image_path, bw_image)
         prediction = classifier.predict(image_path=image_path)
         prediction_text += prediction
-        print(image_path, prediction)
-    return prediction_text
+        # prediction_latex += {db[prediction]}
+        prediction_latex+= db.get(prediction, "")
+        print("Prediction: ", prediction_text)
+        print("Prediction Latex: ", prediction_latex)
+    return prediction_text,prediction_latex
 
 @app.route('/postCanvas', methods=['POST'])
 def upload_canvas():
@@ -141,12 +157,74 @@ def upload_canvas():
 def get_prediction_status(file_id):
     with lock:
         if file_id in prediction_data:
-            return jsonify({'file_id': file_id, 'status': 'completed', 'result': prediction_data[file_id]})
+            return jsonify({'file_id': file_id, 'status': 'completed', 'result': {'plain_text':prediction_data[file_id][0], 'latex_text':prediction_data[file_id][1]}})
         elif file_id in incomplete_predictions:
             return jsonify({'file_id': file_id, 'status': 'incomplete', 'message': 'Prediction is still in progress'}), 200
         else:
             return jsonify({'status': -1, 'error': 'Prediction data not found for the file ID'}), 404
 
+@app.route('/model_details', methods=['GET'])
+def model_details():
+    global model_name
+    try:
+        print(f'learner/models/{model_name}.metadata.json')
+        with open(f'learner/models/prod_{model_name}.torch.metadata.json', 'r') as f:
+            data = json.load(f)
+            return jsonify(data)
+    except Exception as e:
+        print("Failed to load data:", e)
+        return jsonify({"error": e})
+
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 load_or_train_model()
+
+tokenizer = None
+llm = None
+
+
+def download_and_configure_llm():
+
+    llm_name = "deepseek-ai/deepseek-math-7b-base"
+    llm_directory = "./models/llm"
+    tokenizer = AutoTokenizer.from_pretrained(llm_name)
+    llm = AutoModelForCausalLM.from_pretrained(llm_name, torch_dtype=torch.bfloat16, device_map="auto")
+    llm.generation_config = GenerationConfig.from_pretrained(model_name)
+    llm.generation_config.pad_token_id = llm.generation_config.eos_token_id
+    if not os.path.exists(llm_directory):
+        os.makedirs(llm_directory)
+    
+    tokenizer_path = os.path.join(llm_directory, "tokenizer")
+    model_path = os.path.join(llm_directory, "model")
+    
+    if not os.path.exists(tokenizer_path) or not os.path.exists(model_path):
+        print("Downloading and configuring LLM...")
+        tokenizer = AutoTokenizer.from_pretrained(llm_name)
+        llm = AutoModelForCausalLM.from_pretrained(llm_name, torch_dtype=torch.bfloat16, device_map="auto")
+        llm.generation_config = GenerationConfig.from_pretrained(llm_name)
+        llm.generation_config.pad_token_id = llm.generation_config.eos_token_id
+        
+        tokenizer.save_pretrained(tokenizer_path)
+        llm.save_pretrained(model_path)
+        print("LLM downloaded and configured successfully.")
+    else:
+        print("LLM already downloaded and configured.")
+
+
+@app.route('/generate', methods=['POST'])
+def generate_text():
+    data = request.json
+    text = data.get("text", "")
+    inputs = tokenizer(text, return_tensors="pt")
+    outputs = llm.generate(**inputs.to(llm.device), max_new_tokens=100)
+    result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return jsonify({"result": result})
+
+
+@app.route('/download_llm', methods=['GET'])
+def download_llm():
+    try:
+        threading.Thread(target=download_and_configure_llm).start()
+        return jsonify({'status': 'success', 'message': 'LLM download and configuration initiated'}), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
