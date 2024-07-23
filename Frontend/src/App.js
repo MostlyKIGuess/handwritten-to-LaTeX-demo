@@ -65,18 +65,6 @@ function App() {
       console.error(sresp.error);
     }
   }
-  
-  const getJobStatus = async (track_id) => {
-    const resp = await fetch(`${constants.SERVER_BASE_URL}/${constants.QUEUE_STATUS}/${track_id}`, {
-      method: "GET",
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    const sresp = await resp.json();
-    setLAPIlv2_resp(sresp);
-    console.log(LAPIlv2_resp);
-  }
 
   const handleCopyClick = () => {
     setContentToCopy(ltxcbRef.current.innerText);

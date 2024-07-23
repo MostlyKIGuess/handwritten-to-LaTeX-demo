@@ -32,7 +32,6 @@ except Exception as e:
 # testing
 image_paths = glob.glob("tests/testfornew/**/*", recursive=True)
 
-
 for image_path in image_paths:
     image = cv2.imread(image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
