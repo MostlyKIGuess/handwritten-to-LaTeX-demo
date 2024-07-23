@@ -1,6 +1,6 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
-const { exec } = require('child_process');
+const { spawn } = require('child_process');
 let mainWindow;
 let pythonProcess;
 
@@ -28,16 +28,23 @@ function createWindow() {
 }
 
 app.on('ready', () => {
-    pythonProcess = exec('cd Backend && python app.py', (err, stdout, stderr) => {
-        if (err) {
-            console.error(`Error starting Python server: ${err}`);
-            return;
-        }
-        console.log(`Python server output: ${stdout}`);
+    pythonProcess = spawn('python', ['app.py'], { cwd: 'Backend' });
+
+    pythonProcess.stdout.on('data', (data) => {
+        console.log(`Python server output: ${data}`);
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        console.error(`Python server output: ${data}`);
+    });
+
+    pythonProcess.on('close', (code) => {
+        console.log(`Python server process exited with code ${code}`);
     });
 
     createWindow();
 });
+
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {

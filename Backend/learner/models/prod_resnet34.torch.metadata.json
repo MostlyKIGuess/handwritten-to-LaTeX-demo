@@ -1,0 +1,6 @@
+{
+  "name": "resnet34",
+  "accurcay": 89.35,
+  "loss": 0.23,
+  "updated": "20-jul-2024"
+}

@@ -7,8 +7,8 @@
   "homepage": "./",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder",
-    "build-all": "electron-builder -wl"
+    "build": "npx electron-builder",
+    "build-all": "npx electron-builder -wl"
   },
   "license": "MIT",
   "devDependencies": {

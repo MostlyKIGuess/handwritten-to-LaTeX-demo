@@ -28,6 +28,11 @@ class HandwrittenSymbolsClassifier:
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) 
         ])
+        self.transformintest = transforms.Compose([
+            transforms.Resize((224, 224)),  
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) 
+        ])
         self.dataset = self.HandwrittenSymbolsDataset(root_dir, transform=self.transform)
         self.train_loader, self.test_loader = self._prepare_data_loaders(n)
         self.model = self.CNN(len(self.dataset.classes), model_type=model_type)
